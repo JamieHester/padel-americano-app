@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Player Stats</title>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <style>
+    :root {
+      --aldi-blue: #00539f;
+      --aldi-blue-deep: #003b73;
+      --aldi-yellow: #ffcf00;
+      --aldi-orange: #f58220;
+      --bg: #f5f8fc;
+      --bg-accent: #f7fbff;
+      --text: #10213a;
+      --muted: #5f6f85;
+      --card: #ffffff;
+      --border: #d8e3f0;
+      --soft-surface: #f8fbff;
+      --shadow: 0 10px 30px rgba(0, 49, 102, 0.08);
+    }
+
+    body.dark-mode {
+      --bg: #0b1420;
+      --bg-accent: #101c2b;
+      --text: #edf4ff;
+      --muted: #9fb2c9;
+      --card: #132235;
+      --border: #223853;
+      --soft-surface: #17283d;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 207, 0, 0.14), transparent 22%),
+        radial-gradient(circle at top right, rgba(245, 130, 32, 0.12), transparent 24%),
+        linear-gradient(180deg, var(--bg-accent), var(--bg));
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--aldi-blue), var(--aldi-blue-deep));
+      color: white;
+      padding: 18px;
+      border-radius: 24px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .btn, .btn-link {
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-primary { background: var(--aldi-blue); color: white; }
+    .btn-accent { background: linear-gradient(135deg, var(--aldi-yellow), var(--aldi-orange)); color: #10213a; }
+    .btn-soft { background: var(--soft-surface); color: var(--text); }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .panel.share-mode {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .panel-header {
+      background: linear-gradient(135deg, var(--aldi-blue), var(--aldi-blue-deep));
+      color: white;
+      padding: 16px;
+      font-weight: 900;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    .panel-body {
+      padding: 12px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .player-card {
+      background: linear-gradient(180deg, var(--card), var(--bg-accent));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .player-name {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--aldi-blue-deep);
+      margin-bottom: 10px;
+    }
+
+    body.dark-mode .player-name {
+      color: #d9ebff;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .metric {
+      background: var(--soft-surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    .metric-value {
+      font-size: 18px;
+      font-weight: 900;
+      margin-top: 4px;
+      color: var(--aldi-orange);
+    }
+
+    .detail {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .detail strong {
+      color: var(--text);
+    }
+
+    .match-log {
+      margin-top: 8px;
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .result {
+      font-weight: 900;
+      color: var(--aldi-blue-deep);
+    }
+
+    body.dark-mode .result {
+      color: #ffcf00;
+    }
+
+    .panel.share-mode .match-log {
+      display: none;
+    }
+
+    .panel.share-mode .player-card {
+      padding: 12px;
+    }
+  </style>
+
+  <script>
+    async function saveStatsAsImage() {
+      const panel = document.getElementById("stats-capture");
+      const canvas = await html2canvas(panel, { backgroundColor: "#ffffff", scale: 2 });
+      const link = document.createElement("a");
+      link.download = "padel-player-stats.png";
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+
+    function toggleShareMode() {
+      document.getElementById("stats-capture").classList.toggle("share-mode");
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+      localStorage.setItem("aldiDarkMode", document.body.classList.contains("dark-mode") ? "on" : "off");
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      if (localStorage.getItem("aldiDarkMode") === "on") {
+        document.body.classList.add("dark-mode");
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <div class="container">
+    <section class="hero">
+      <h1>Player Stats</h1>
+      <div class="actions">
+        <a class="btn-link btn-primary" href="/">Back</a>
+        <a class="btn-link btn-primary" href="/results">Results</a>
+        <button class="btn btn-accent" onclick="saveStatsAsImage()">Save image</button>
+        <button class="btn btn-soft" onclick="toggleShareMode()">Share mode</button>
+        <button class="btn btn-soft" onclick="toggleDarkMode()">Dark</button>
+      </div>
+    </section>
+
+    <section id="stats-capture" class="panel">
+      <div class="panel-header">
+        Padel Americano Player Stats
+      </div>
+
+      <div class="panel-body">
+        <div class="stats-grid">
+          {% for player in player_stats %}
+            <div class="player-card">
+              <div class="player-name">{{ player.name }}</div>
+
+              <div class="metric-row">
+                <div class="metric">
+                  <div class="metric-label">Pts</div>
+                  <div class="metric-value">{{ player.points }}</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">W-L</div>
+                  <div class="metric-value">{{ player.wins }}-{{ player.losses }}</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">Win %</div>
+                  <div class="metric-value">{{ player.win_rate }}%</div>
+                </div>
+              </div>
+
+              <div class="detail">
+                <div><strong>Game diff:</strong> {{ player.diff }}</div>
+                <div><strong>Top partner:</strong> {{ player.top_partner }}</div>
+                <div><strong>Most faced:</strong> {{ player.most_faced }}</div>
+                <div><strong>Best win:</strong>
+                  {% if player.best_win %}
+                    R{{ player.best_win.round }} {{ player.best_win.score }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="match-log">
+                {% for match in player.matches %}
+                  <div>
+                    <span class="result">{{ match.result }}</span>
+                    R{{ match.round }} with {{ match.partner }} vs {{ match.opponents }} — {{ match.score }}
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
