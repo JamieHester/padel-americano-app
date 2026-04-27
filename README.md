@@ -1,1 +1,0 @@
-# padel-americano-app
